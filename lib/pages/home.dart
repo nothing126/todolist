@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget{
   const Home({Key? key}) : super(key:key);
@@ -7,13 +8,28 @@ class Home extends StatefulWidget{
 }
 
 class _HomeState extends State<Home> {
+
   late String _Usertodo;
   List todoList=[];
+
   @override
   void initState(){
     super.initState();
-    todoList.addAll(['buy milk',' buy cornflakes',' buy sugar','buy juice',]);
+    _loadTodoList();
   }
+
+_loadTodoList() async {
+SharedPreferences prefs = await SharedPreferences.getInstance();
+setState(() {
+todoList = prefs.getStringList('todoList') ?? [];
+});
+}
+
+  _saveTodoList() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('todoList', todoList.map((task) => task.toString()).toList());
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -34,9 +50,7 @@ class _HomeState extends State<Home> {
               ),
               child: Card(
                 child: ListTile(
-                  title: Text(
-                      todoList[index]
-                  ),
+                  title: Text(todoList[index]['task']),
                   trailing: IconButton(
                     icon: const Icon(
                       Icons.delete_forever,
@@ -75,6 +89,7 @@ class _HomeState extends State<Home> {
                    ElevatedButton(onPressed:(){
                     setState(() {
                       todoList.add(_Usertodo);
+                      _saveTodoList();
                     }
                     );
                     Navigator.of(context).pop();
